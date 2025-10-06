@@ -50,7 +50,7 @@ footer button span{font-size:.7rem;color:#555;}
 </footer>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxa9OH_WQjrhlT4ma2REjyana0KxxLH0z0Xr30kC0h5WBzr-Cd3siltQGL5FbWYQjtn/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzNc7tRbAf8MPFspQVwS690JMDizPutpajGlLDtTfAqBQKz3D4YyqxiW0D6qasWW4N4/exec";
 
 async function carregarSaldos() {
   try {
@@ -93,24 +93,34 @@ async function verMovimentos() {
 }
 
 async function enviarTransacao() {
-  const payload={
+  const payload = {
     Tipo: document.getElementById('tipo').value,
     ContaOrigem: document.getElementById('origem').value,
     ContaDestino: document.getElementById('destino').value,
     Valor: Number(document.getElementById('valor').value),
     Descricao: document.getElementById('descricao').value
   };
-  try{
-    const res = await fetch(API_URL,{
-      method:'POST',
-      body: JSON.stringify({action:'addTransaction', payload}),
-      headers:{'Content-Type':'application/json'}
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action:'addTransaction', payload })
     });
     const data = await res.json();
-    if(data.ok) mostrarHome();
-    else alert('Erro: '+(data.error||''));
-  }catch(e){ alert('Erro ao guardar'); }
+    if(data.ok){
+      alert("Movimento guardado!");
+      document.getElementById('formulario').reset();
+      document.getElementById('formulario').style.display='none';
+      carregarSaldos();
+    } else {
+      alert("Erro: "+(data.error||"desconhecido"));
+    }
+  } catch(e) {
+    alert("Erro ao guardar: "+e.message);
+  }
 }
+
 
 carregarSaldos();
 </script>
