@@ -1,91 +1,118 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Finanças Pessoais</title>
-
-  <!-- 🌙 Estilo minimalista -->
-  <meta name="theme-color" content="#007aff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Finanças">
-  <link rel="apple-touch-icon" href="icon.png">
-
-  <!-- 🔗 Manifesto PWA -->
-  <link rel="manifest" href="manifest.json">
-
-  <style>
-    body { font-family: -apple-system, sans-serif; margin: 0; background: #f5f5f5; color: #333; }
-    header { background: #fff; padding: 1rem; text-align: center; font-size: 1.2rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
-    main { padding: 1rem; max-width: 600px; margin: auto; }
-    .saldo { text-align: center; margin: 1rem 0; font-size: 1.5rem; }
-    .conta { background: white; padding: .8rem 1rem; border-radius: 10px; margin-bottom: .6rem; display: flex; justify-content: space-between; align-items: center; }
-    .btn { background: #007aff; color: white; border: none; border-radius: 10px; padding: .7rem 1rem; font-size: 1rem; width: 100%; margin-top: 1rem; }
-    form { background: white; padding: 1rem; border-radius: 10px; margin-top: 1rem; }
-    input, select { width: 100%; padding: .6rem; margin: .3rem 0; border-radius: 6px; border: 1px solid #ccc; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Finanças">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<title>Finanças</title>
+<style>
+body {margin:0;font-family:-apple-system,system-ui,sans-serif;background:#f5f5f5;color:#333;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+header{padding:1rem;text-align:center;font-weight:600;background:#007aff;color:#fff;}
+main{flex:1;overflow-y:auto;padding:1rem;}
+.saldo{font-size:1.5rem;text-align:center;margin-bottom:1rem;}
+.conta{background:#fff;padding:.8rem 1rem;border-radius:12px;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 5px rgba(0,0,0,0.05);}
+.btn{background:#007aff;color:white;border:none;border-radius:12px;padding:.8rem 1rem;font-size:1rem;width:100%;margin-top:1rem;}
+form{background:#fff;padding:1rem;border-radius:12px;margin:1rem 0;}
+input,select{width:100%;padding:.6rem;margin:.3rem 0;border-radius:6px;border:1px solid #ccc;}
+/* Bottom Menu */
+footer{display:flex;justify-content:space-around;padding:.5rem 0;background:#fff;border-top:1px solid #ddd;box-shadow:0 -2px 5px rgba(0,0,0,0.05);}
+footer button{background:none;border:none;font-size:1rem;color:#007aff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+footer button span{font-size:.7rem;color:#555;}
+</style>
 </head>
 <body>
-  <header>💰 Finanças</header>
-  <main>
-    <div id="saldos"></div>
-    <button class="btn" onclick="mostrarFormulario()">➕ Nova Transação</button>
 
-    <form id="formulario" style="display:none;">
-      <select id="tipo">
-        <option value="Receita">Receita</option>
-        <option value="Despesa">Despesa</option>
-        <option value="Transferência">Transferência</option>
-      </select>
-      <input id="origem" placeholder="Conta origem">
-      <input id="destino" placeholder="Conta destino (se transferência)">
-      <input id="valor" placeholder="Valor (€)" type="number" step="0.01">
-      <input id="descricao" placeholder="Descrição">
-      <button type="button" class="btn" onclick="enviarTransacao()">Guardar</button>
-    </form>
-  </main>
+<header>💰 Finanças</header>
+<main id="mainView">
+  <div id="saldos"></div>
+  <form id="formulario" style="display:none;">
+    <select id="tipo">
+      <option>Despesa</option>
+      <option>Receita</option>
+      <option>Transferência</option>
+    </select>
+    <input id="origem" placeholder="Conta Origem">
+    <input id="destino" placeholder="Conta Destino (Transferência)">
+    <input id="valor" type="number" step="0.01" placeholder="Valor (€)">
+    <input id="descricao" placeholder="Descrição">
+    <button type="button" class="btn" onclick="enviarTransacao()">Guardar</button>
+  </form>
+</main>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxwj6ku-C-7TUn8YFRGmddWYb6zrxQtGuDYG071mMK08EHuzIbGb8t2BOCp-rYwlwE/exec";
+<footer>
+  <button onclick="mostrarHome()">🏠<span>Home</span></button>
+  <button onclick="mostrarFormulario()">➕<span>Nova</span></button>
+  <button onclick="verMovimentos()">📄<span>Movs</span></button>
+</footer>
 
-    async function carregarSaldos() {
-      const res = await fetch(API_URL + '?action=getData');
-      const data = await res.json();
-      const contas = data.contas;
-      const container = document.getElementById('saldos');
-      container.innerHTML = `<div class='saldo'>Saldo total: <b>${data.total.toFixed(2)} €</b></div>`;
-      contas.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'conta';
-        div.innerHTML = `<span>${c.Conta}</span><span><b>${parseFloat(c.SaldoAtual).toFixed(2)} €</b></span>`;
-        container.appendChild(div);
-      });
-    }
+<script>
+const API_URL = "COLOCA_AQUI_O_TEU_WEBAPP_URL";
 
-    function mostrarFormulario() {
-      document.getElementById('formulario').style.display = 'block';
-    }
+async function carregarSaldos() {
+  try {
+    const res = await fetch(`${API_URL}?action=getaccounts`);
+    const data = await res.json();
+    const container = document.getElementById('saldos');
+    container.innerHTML = '';
+    if (!data.ok || !data.accounts) return;
+    let total = 0;
+    data.accounts.forEach(c=>{
+      total += Number(c.SaldoAtual||0);
+      const div = document.createElement('div');
+      div.className = 'conta';
+      div.innerHTML = `<span>${c.Conta}</span><span>${Number(c.SaldoAtual).toFixed(2)} €</span>`;
+      container.appendChild(div);
+    });
+    const saldoTotal = document.createElement('div');
+    saldoTotal.className='saldo';
+    saldoTotal.innerHTML = `Saldo Total: <b>${total.toFixed(2)} €</b>`;
+    container.prepend(saldoTotal);
+  } catch(e){ console.error(e);}
+}
 
-    async function enviarTransacao() {
-      const tipo = document.getElementById('tipo').value;
-      const origem = document.getElementById('origem').value;
-      const destino = document.getElementById('destino').value;
-      const valor = document.getElementById('valor').value;
-      const descricao = document.getElementById('descricao').value;
+function mostrarFormulario() { document.getElementById('formulario').style.display='block'; }
+function mostrarHome() { document.getElementById('formulario').style.display='none'; carregarSaldos(); }
 
-      await fetch(API_URL + '?action=addTransaction', {
-        method: 'POST',
-        body: JSON.stringify({ tipo, origem, destino, valor, descricao }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+async function verMovimentos() {
+  try {
+    const res = await fetch(`${API_URL}?action=getmovements&limit=50`);
+    const data = await res.json();
+    const container = document.getElementById('saldos');
+    container.innerHTML='<h3>Últimos Movimentos</h3>';
+    data.movements.forEach(m=>{
+      const div=document.createElement('div');
+      div.className='conta';
+      div.innerHTML=`<span>${m.Descricao||m.Tipo}</span><span>${Number(m.Valor).toFixed(2)} €</span>`;
+      container.appendChild(div);
+    });
+  } catch(e){ console.error(e);}
+}
 
-      document.getElementById('formulario').reset();
-      document.getElementById('formulario').style.display = 'none';
-      carregarSaldos();
-    }
+async function enviarTransacao() {
+  const payload={
+    Tipo: document.getElementById('tipo').value,
+    ContaOrigem: document.getElementById('origem').value,
+    ContaDestino: document.getElementById('destino').value,
+    Valor: Number(document.getElementById('valor').value),
+    Descricao: document.getElementById('descricao').value
+  };
+  try{
+    const res = await fetch(API_URL,{
+      method:'POST',
+      body: JSON.stringify({action:'addTransaction', payload}),
+      headers:{'Content-Type':'application/json'}
+    });
+    const data = await res.json();
+    if(data.ok) mostrarHome();
+    else alert('Erro: '+(data.error||''));
+  }catch(e){ alert('Erro ao guardar'); }
+}
 
-    carregarSaldos();
-  </script>
+carregarSaldos();
+</script>
 </body>
 </html>
